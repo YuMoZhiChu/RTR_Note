@@ -122,5 +122,5 @@ not be mistaken for the way the GPU actually implements the pipeline.
 ```
 RTR提醒: 逻辑模型只是让你更好的理解，真正的GPU实现不一定如此。
 
-## 
+## 可编程的
 

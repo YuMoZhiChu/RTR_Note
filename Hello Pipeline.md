@@ -103,7 +103,7 @@ until the slowest stage has finished its task.
 >>* 减面算法，压缩贴图（等等），目的就是让提交给 GPU 的内容变少，减轻 GPU 的负担。
 >>* Compute Shader(cs)，一种由API调用（DX11+），直接让GPU做运算的着色器。
 >>* 软渲，全在CPU做的渲染（用CPU来实现管线，但因为CPU缺少了GPU高并发的能力，所以一般就是做做小demo）
->>* 多核处理 + GPU渲染，随着CPU的性能提升，GPU会将一部分工作转移至CPU，或者利用CPU的多核特性。
+>>* 多核处理 + GPU渲染，随着CPU的性能提升，我们可以充分利用CPU的多核特性，让dc的调用分布在多个线程上。
 **TODO：暂时不了解，RTR 18.5**
 
 ## 几何处理
@@ -302,7 +302,7 @@ Fixedfunction hardware is used for this task.
 Here is where each pixel that has its center (or a sample) covered by the triangle is
 checked and a fragment generated for the part of the pixel that overlaps the triangle.
 ```
-这是**个人推测**的一个遍历流程
+这是**个人实现**的一个遍历流程
 >* 从(0,0)开始，逐像素进行检测
 >>* 对于像素 a，遍历所有的基元进行检测
 >>>* 对于像素 a，基元 E，判断 a 是否被 E 覆盖，若否，跳到 下一个基元继续循环
@@ -310,6 +310,10 @@ checked and a fragment generated for the part of the pixel that overlaps the tri
 >>>* f 的属性，根据基元 E 做插值完成
 >>* 继续下一个基元的检测
 >* 继续下一个像素的检测
+
+在这里，有许多光栅化的实现算法，又是一个非常大的坑。比如 Bresenham 算法等。
+
+[Bresenham's line algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)
 
 当然，真正的三角形遍历的算法不可能这么暴力，肯定有简化和优化的过程，但得到的结果是：
 ```
