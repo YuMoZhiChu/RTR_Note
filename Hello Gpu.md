@@ -1,4 +1,4 @@
-﻿# hello pipeline
+﻿# hello gpu
 
 参考 : 有许多非常专业的网站提供了更加详细，全面的解释
 
@@ -13,11 +13,6 @@
 简写 : 在初次出现时会用全称，后续直接用简写代替
 ``` python
 DrawCall              : "dc"      #一次渲染调用
-# 4 个粗略分类的大阶段
-Application           : "App_p"   #应用层面 阶段（CPU阶段)
-Geometry Processing   : "g_p"     #几何处理 阶段
-Rasterization         : "r_p"     #光栅化   阶段
-Pixel Processing      : "p_p"     #像素处理 阶段
 # 数个着色器或阶段的简称
 Input Assembler Stage : "IA"      #输入装配 阶段
 Vertex-Shader Stage   : "VS"      #顶点着色 阶段
@@ -203,15 +198,10 @@ but is stored in a z-buffer
 >* geometry shader， 几何着色器，后面简写为 gs
 >>* gs 的目的就是生成顶点，我们能够得到原来的顶点数据，在这个基础上生成我们想要的，点，线，或者面。
 >>* 在 Learn OpenGL 的教程上，几何着色器一章中，我们看到实现了这样的效果：
-
 ![Gs Norline Learnopengl](pic/hello_pipeline/gs_norline_learnopengl.png)
-
 ![Gs Norline Learnopengl Code](pic/hello_pipeline/gs_norline_learnopengl_code.png)
-
 >>* 其实这是2次dc的结果，一次原来的不变，一次画黄色的法线，我们可以略微调整一下得到一下的效果：
-
 ![Gs Mesh Show](pic/hello_pipeline/gs_mesh_show.png)
-
 >>* 这只需要把三角形改成线即可。
 >* output stream，输出流程，后面简写为 os
 >>* os 在 openGL 中又称为 Transform Feed back
@@ -224,13 +214,9 @@ to one or more buffers in memory
 ```
 >>* 流输出的目的就是，获取 gs的输出，或者直接是 vs的输出。这些输出的几何数据，主要有 2 个途径获取
 >>* os 的数据能够重新回到 输入装配阶段 （Input Assembler 后简称 IA)。顾名思义，IA 就是从用户填充的缓冲区中读取数据，并将数据装配为 **primitive**（这里称之为基元），交由 vs 使用的阶段。
-
 ![Ia Assemble Primitive](pic/hello_pipeline/ia_assemble_primitive.png)
-
 >>* os 的数据也可以作为缓冲存下来，在这里可以被其他 shader 的load函数读取，也能从 CPU 中读取。
-
 ![Os Stage](pic/hello_pipeline/os_stage.png)
-
 >>* **TODO：暂时不了解 os 的具体应用，后续碰到的话会补上**
 
 ### 裁剪
