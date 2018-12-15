@@ -87,7 +87,7 @@ SIMD （single instruction, multiple data）。通过这种形式，对固定数
 
 在SIMD中，每个线程对于一条通道。
 
-![3.1](pic/hello_gpu/3.1.png)
+![3.1](pic/3/3.1.png)
 
 >* 2000 线程，63 组的例子
 >>* 以组为单位执行指令，遇到内存读取时（图中的txr指令），交换组
@@ -109,7 +109,7 @@ results not needed by each particular thread [530, 945].
 
 在之前，我们可能提及到了，管线中有些功能是 Fixed-Function，一些是 Programmable,，在这里给出总览。
 
-![3.2](pic/hello_gpu/3.2.png)
+![3.2](pic/3/3.2.png)
 
 其中:
 >* 绿色: 完全可编程 （programmable）
@@ -122,5 +122,107 @@ not be mistaken for the way the GPU actually implements the pipeline.
 ```
 RTR提醒: 逻辑模型只是让你更好的理解，真正的GPU实现不一定如此。
 
-## 可编程的
+## 可编程的渲染阶段
+现代的着色器使用统一的着色器设计（shader design），这意味着：
+>* 所有的着色器，顶点，像素，几何，曲面细分相关，都是在一个通用的编程模型下。
+>* 他们使用相同指令集架构。
+>* 我们使用 通用渲染核心（common-shader core) 来支持该架构，让GPU来动态处理 核心 的工作分配。
+
+着色器语言是类似C语言的（GLSL HLSL）。
+
+比如DX的 HLSL 能编译成 DXIL 的中间虚拟机的机器码，来实现硬件无关 和 离线编译。
+
+中间语言通过特定GPU的硬件转化为 ISA（指令集）。
+
+但是游戏主机上的shader就没有中间语言这一步，因为只有一个系统的指令集。
+
+```
+On modern GPUs 
+32-bit integers and 
+64-bit floats 
+are also supported natively. 
+```
+
+现代GPU支持32位整数和64位浮点数。
+
+浮点数向量通常包含位置（xyzw），法线，矩阵行，颜色（rgba），以及纹理坐标（uvwq）。
+
+整数通常用于表示计数器，下标，或者位掩码。
+
+并支持聚合性数据，如结构体，数组，以及矩阵。
+
+---
+在每个可编程的着色阶段，有2种形式的输入。
+>* uniform inputs（统一的输入）: 在整个dc流程中不会改变的值，贴图纹理是一个典型的例子。
+>* varying inputs（变化的输入）: 来自三角形顶点或者光栅化的数据。
+![Uniform Varying Input](pic/hello_gpu/uniform_varying_input.png)
+
+![3.3](pic/3/3.3.png)
+
+底层的虚拟机为各种不同类型的输入输出提供了相应的寄存器。
+
+可以发现，统一输入的寄存器的数量比变化输入的寄存器数量要多。
+
+是因为在整个dc中，统一输入的变量一旦存储数据，可以被所有的顶点和像素着色器重复使用。
+
+而变化输入的寄存器，每个顶点或者像素都有不同的内容，所以他们的数量要少很多。
+
+```
+The virtual machine also has general-purpose temporary registers, which are used for scratch space.
+All types of registers can be array-indexed using integer values in temporary registers.
+```
+
+临时寄存器有着很广泛的用途，可以做临时空间，也可以做索引 **TODO：暂时不能理解 临时寄存器的用处**
+
+![Gl Get Reg](pic/hello_gpu/gl_get_reg.png)
+
+```
+GL_MAX_VERTEX_UNIFORM_COMPONENTS
+data returns one value, the maximum number of individual floating-point, integer, or boolean values that can be held in uniform variable storage for a vertex shader. The value must be at least 1024. See glUniform.
+
+GL_MAX_VERTEX_UNIFORM_VECTORS
+data returns one value, the maximum number of 4-vectors that may be held in uniform variable storage for the vertex shader. The value of GL_MAX_VERTEX_UNIFORM_VECTORS is equal to the value of GL_MAX_VERTEX_UNIFORM_COMPONENTS and must be at least 256.
+```
+
+这是一段查看 GL Constant Registers 的程序 **TODO：不知道为什么，block少了两**
+
+---
+注意的点
+>* 尽量使用内置的数学函数，效率会高很多
+>* if-loop 少用，用多了会导致不稳定的代码执行流变化，增加消耗
+
+## 着色器和API的演变
+*这一节的内容，讲的是GPU相关发展的历史，所以当成有趣的故事听听吧~*
+
+![Robert Cook](pic/hello_gpu/robert_cook.png)
+
+可编程的着色框架起源于1984年Cook提出的 渲染树 的概念，并在此后提出了 RenderMan 这门渲染语言。
+
+![3.4](pic/3/3.4.png)
+
+是不是跟 Phong 光照模型很像？
+
+如今这种渲染模式仍被电影的渲染流程使用，不过加上了更多的标准（Open Shading Language (OSL)）
+
+---
+
+![3.5](pic/3/3.5.png)
+
+1996.10.1 3dfx Interactive 推出了第一款用户级别的图形处理硬件 ，这款显卡是完全 Fixed-Function 的。并很好的支持当时的游戏 Quake (雷神之锤)
+
+![3Dfx Interactive](pic/hello_gpu/3dfx_Interactive.png)
+
+```
+there were several attempts to implement programmable shading operations 
+in real time via multiple rendering passes.
+```
+
+1999 GeForce256 ，第一款被称为GPU的硬件出现，它是 configurable 的。
+
+在出现支持 programmable 的 GPU 之前，人们通过 多个渲染过程的组合 来实现着色。（大致意思是这样）
+
+2001，NVIDIA’s GeForce 3，第一款支持 vs 编程的GPU发行，
+
+
+
 
