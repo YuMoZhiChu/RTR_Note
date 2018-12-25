@@ -345,6 +345,131 @@ WebGL有以下的优点：
 
 [three.js](https://threejs.org/) 这是推荐的一个 WebGL 的网站。
 
+## 顶点着色器
+
+![3.2](pic/3/3.2.png)
+
+### IA
+
+在vs阶段之前，有一个IA的阶段，它主要的工作是：
+
+比如一个三角形，它是这样表示的:
+
+![Ia Inpit](pic/hello_gpu/ia_inpit.png)
+
+IA就将它转化为:
+
+![Ia Output](pic/hello_gpu/ia_output.png)
+
+这些就是vs的输入。
+
+### 法线
+
+顶点输入中，有一个常见的属性就是法线坐标，需要了解的是：
+
+法线往往代表的是该点的法线（或者是一个非常小的平面的法线），而不是三角形的法线。
+
+所以，粗糙程度不同的网格，虽然顶点的位置可能一样，但法线会不同。
+
+![3.7](pic/3/3.7.png)
+
+### 顶点处理
+
+顶点处理有以下特点：
+>* 仅仅处理传入顶点
+>* 不能创建顶点，也不能销毁顶点。
+>* 产生的数据只能给下一个阶段，不能和其他顶点着色程序有数据交互。
+
+*因此，顶点数据流对GPU并行非常友好*
+
+### 顶点着色器常见用途
+
+这里只写一个标题
+
+>* 实例化生成物体，只需要一份网格数据
+>* 蒙皮和形变技术，动画效果
+>* 程序模拟，旗帜，布料，水流的效果
+>* 粒子生成
+>* 镜头扭曲，热的雾气蒸腾，水波纹，页面卷曲
+>* 地形高度纹理
+
+## 曲面细分着色器
+
+### API
+
+曲面细分在 DX11，OpenGL 4.0，ES 3.2 及以上版本支持。
+
+### ts流程
+
+![3.9](pic/3/3.9.png)
+
+这是文中在DX中展示的流程，下图是GL的（我们以GL举例，因为DX的几个英文意思太玄乎了）
+
+![Ts Gl](pic/hello_gpu/ts_gl.png)
+
+#### TCS
+
+##### 输入
+
+TCS，顾名思义，其CS的意思是 Control Points的意思，这些顶点并没有被定义成具体的三角形。
+
+他们定义了一个几何曲面（或者曲线），当修改一个点时，整个曲面（线）也会改变。
+
+![Tcs Input Patch](pic/hello_gpu/tcs_input_patch.png)
+
+很熟悉吗？其实这是一个贝塞尔的曲面。
+
+而这就是 tcs 的输入，他们被称为 patch。
+
+##### 功能
+
+那程序员会在 tcs 中做什么呢？
+
+1. 我们可以在 tcs 对控制点进行一些，增删改的操作，然后输出一份修改后的 patch。
+
+2. tcs 还需要计算一组被称为 **Tessellation Levels (TL) 的数据**，这个数据名为 曲面细分等级，显然，它就是进行曲面细分的重要数据。
+
+##### 细分曲面域及对应的TL
+
+API 会根据输出的 patch，将 patch 对应到3个不同曲面细分域。
+
+矩形，三角形，等值线。
+
+对应的TL有： In/Out TL，In/Out TL，Out TL
+
+#### PG
+
+在这里可以注意到，tessellator 或者 Primitive Generator 都用特殊的颜色标记
+
+因为是写死在硬件上的（Fixed-Function），功能非常纯粹，就是生成一个空间下的顶点信息和网格。
+
+##### 空间
+
+每个曲面细分域对应不同的空间：
+
+![Pg Domain](pic/hello_gpu/pg_domain.png)
+
+等值线就是一条直线域。
+
+对于矩形，其In，Out分别代表，内部横竖分为几块，外边分为几等份。
+
+![Quad Pg Domian](pic/hello_gpu/quad_pg_domian.png)
+
+对于三角形，Out一样是外边被分为几块，In的含义比较模糊。
+
+![Tri Pg Domain 1](pic/hello_gpu/tri_pg_domain_1.png)
+
+![Tri Pg Domain 2](pic/hello_gpu/tri_pg_domain_2.png)
+
+![Tri Pg Domain 3](pic/hello_gpu/tri_pg_domain_3.png)
+
+![Tri Pg Domain 4](pic/hello_gpu/tri_pg_domain_4.png)
+
+自己悟吧。
+
+对于直线，只有Out。
+
+![Iso Pg Domain](pic/hello_gpu/iso_pg_domain.png)
 
 
 
